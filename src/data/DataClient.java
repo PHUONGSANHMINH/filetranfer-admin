@@ -5,6 +5,7 @@
 package data;
 
 import com.corundumstudio.socketio.SocketIOClient;
+import java.util.HashMap;
 
 /**
  *
@@ -50,7 +51,11 @@ public class DataClient {
     
     private SocketIOClient socketIOClient;
     private String name;
+    private HashMap<Integer, DataWriter> list = new HashMap<>();
     
+    public void addWriter (DataWriter data, int fileID){
+        list.put(fileID, data);
+    }
     public Object[] toRowTable (int row){
         return new Object[] {this,row,name};
     }

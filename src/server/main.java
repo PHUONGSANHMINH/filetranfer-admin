@@ -12,6 +12,9 @@ import com.corundumstudio.socketio.listener.ConnectListener;
 import com.corundumstudio.socketio.listener.DataListener;
 import com.corundumstudio.socketio.listener.DisconnectListener;
 import data.DataClient;
+import data.DataInitFile;
+import data.DataWriter;
+import java.io.File;
 import javax.swing.SwingUtilities;
 import javax.swing.table.DefaultTableModel;
 
@@ -131,6 +134,17 @@ public class main extends javax.swing.JFrame {
             }
             
         });
+        server.addEventListener("send_file", DataInitFile.class, new DataListener<DataInitFile>(){
+            @Override
+            public void onData(SocketIOClient sioc, DataInitFile t, AckRequest ar) throws Exception {
+                int fileID = initFileTransfer(sioc, t);
+                if(fileID > 0){
+                    ar.sendAckData(true, fileID);
+                }
+            }
+            
+        });
+        server.addEventListener("sending", , listener);
         server.start();
     }//GEN-LAST:event_cmdStartActionPerformed
 
@@ -171,6 +185,29 @@ public class main extends javax.swing.JFrame {
                 break;
             }
         }
+    }
+    private int initFileTransfer(SocketIOClient client, DataInitFile dataInitFile){
+        int id = 0;
+        for(int i=0 ; i< table.getRowCount(); i++){
+            DataClient data = (DataClient) table.getValueAt(i, 0);
+            if(data.getSocketIOClient() == client){
+                try {
+                    id = generateFileID();
+                    File file = new File("D:/socket_data/"+id+"-"+dataInitFile.getFileName());
+                    DataWriter writer = new DataWriter(file, dataInitFile.getFileName());
+                    data.addWriter(writer, i);
+                    break;
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        return id;
+    }
+    private int fileID;
+    private synchronized int generateFileID(){
+        fileID ++;
+        return fileID;
     }
     /**
      * @param args the command line arguments
