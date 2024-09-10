@@ -13,14 +13,14 @@ public class DataInitFile {
     /**
      * @return the fileName
      */
-    public int getFileName() {
+    public String getFileName() {
         return fileName;
     }
 
     /**
      * @param fileName the fileName to set
      */
-    public void setFileName(int fileName) {
+    public void setFileName(String fileName) {
         this.fileName = fileName;
     }
 
@@ -38,12 +38,17 @@ public class DataInitFile {
         this.fileSize = fileSize;
     }
 
-    public DataInitFile(int fileName, long fileSize) {
+    public DataInitFile() {
+        
+    }
+    
+    public DataInitFile(String fileName, long fileSize) {
         this.fileName = fileName;
         this.fileSize = fileSize;
     }
     
-    private int fileName;
+    
+    private String fileName;
     private long fileSize;
     
 }

@@ -12,6 +12,7 @@ import com.corundumstudio.socketio.listener.ConnectListener;
 import com.corundumstudio.socketio.listener.DataListener;
 import com.corundumstudio.socketio.listener.DisconnectListener;
 import data.DataClient;
+import data.DataFileSending;
 import data.DataInitFile;
 import data.DataWriter;
 import java.io.File;
@@ -144,7 +145,18 @@ public class main extends javax.swing.JFrame {
             }
             
         });
-        server.addEventListener("sending", , listener);
+        server.addEventListener("sending", DataFileSending.class, new DataListener<DataFileSending>() {
+            @Override
+            public void onData(SocketIOClient sioc, DataFileSending t, AckRequest ar) throws Exception {
+                if(!t.isFinish()){
+                    writeFile(sioc, t);
+                    ar.sendAckData(true);
+                }else{
+                    ar.sendAckData(false);
+                    closeFile(sioc, t);
+                }
+            }
+        });
         server.start();
     }//GEN-LAST:event_cmdStartActionPerformed
 
@@ -194,15 +206,45 @@ public class main extends javax.swing.JFrame {
                 try {
                     id = generateFileID();
                     File file = new File("D:/socket_data/"+id+"-"+dataInitFile.getFileName());
-                    DataWriter writer = new DataWriter(file, dataInitFile.getFileName());
-                    data.addWriter(writer, i);
-                    break;
+                    DataWriter writer = new DataWriter(file, dataInitFile.getFileSize());
+                    data.addWriter(writer, id);
+                    System.out.println("File init");
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
+                break;
             }
         }
         return id;
+    }
+    private boolean writeFile(SocketIOClient client, DataFileSending file){
+        boolean error = false;
+        for(int i=0 ; i< table.getRowCount(); i++){
+            DataClient data = (DataClient) table.getValueAt(i, 0);
+            if(data.getSocketIOClient() == client){
+                try {
+                    data.writeFile(file.getData(), file.getFileID());
+                } catch (Exception e) {
+                    error = true;
+                    e.printStackTrace();
+                }
+                break;
+            }
+        }
+        return !error;
+    }
+    private void closeFile(SocketIOClient client, DataFileSending file){
+        for(int i=0 ; i< table.getRowCount(); i++){
+            DataClient data = (DataClient) table.getValueAt(i, 0);
+            if(data.getSocketIOClient() == client){
+                try {
+                    data.closeWriter(fileID);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                break;
+            }
+        }
     }
     private int fileID;
     private synchronized int generateFileID(){
